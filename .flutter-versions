@@ -1,0 +1,3 @@
+# Dart version : Flutter version
+# When you bump the Dart SDK in pubspec.yaml, add/update the mapping here.
+3.11.5: 3.41.9
