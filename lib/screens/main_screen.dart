@@ -39,6 +39,7 @@ import '../widgets/editable_exif_data_table.dart';
 import '../widgets/error_display.dart';
 import '../widgets/export_menu.dart';
 import '../widgets/file_list_panel.dart';
+import '../widgets/add_tag_dialog.dart';
 import '../widgets/unsaved_changes_dialog.dart';
 import 'about_screen.dart';
 import 'settings_screen.dart';
@@ -63,6 +64,9 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
 
   // Merged EXIF view for selected files
   Map<String, List<MergedTagItem>> _mergedItems = {};
+
+  // Newly added tags that don't exist in any selected file yet
+  final Map<String, List<MergedTagItem>> _newTags = {};
 
   // Pending edits: key = "tagGroup|tagId|tagName" -> {tagId, tagName, tagGroup, value}
   final Map<String, Map<String, String>> _pendingEdits = {};
@@ -385,6 +389,7 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
 
       setState(() {
         _pendingEdits.clear();
+        _newTags.clear();
         _isLoading = false;
       });
 
@@ -419,6 +424,7 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
   void _discardEditsInternal() {
     setState(() {
       _pendingEdits.clear();
+      _newTags.clear();
       for (final group in _mergedItems.values) {
         for (final item in group) {
           item.pendingValue = null;
@@ -469,9 +475,49 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
   // Clipboard / Export
   // ──────────────────────────────────────────────────────────
 
+  Map<String, List<MergedTagItem>> get _displayItems {
+    final result = <String, List<MergedTagItem>>{};
+    for (final entry in _mergedItems.entries) {
+      result[entry.key] = List.from(entry.value);
+    }
+    for (final entry in _newTags.entries) {
+      result.putIfAbsent(entry.key, () => []).addAll(entry.value);
+    }
+    return result;
+  }
+
+  Future<void> _showAddTagDialog() async {
+    if (_selectedIndices.isEmpty) return;
+
+    final result = await AddTagDialog.show(context);
+    if (result == null) return;
+
+    final key = '${result.group}||${result.tagName}';
+    setState(() {
+      _pendingEdits[key] = {
+        'tagId': '',
+        'tagName': result.tagName,
+        'tagGroup': result.group,
+        'value': result.value,
+      };
+
+      final newItem = MergedTagItem(
+        tagId: '',
+        tagGroup: result.group,
+        tagName: result.tagName,
+        fileValues: {},
+        displayValue: '<new>',
+        isUnequal: false,
+        pendingValue: result.value,
+      );
+      _newTags.putIfAbsent(result.group, () => []).add(newItem);
+    });
+  }
+
   Future<void> _copySelected() async {
     final buffer = StringBuffer();
-    for (final groupEntry in _mergedItems.entries) {
+    final display = _displayItems;
+    for (final groupEntry in display.entries) {
       buffer.writeln('[${groupEntry.key}]');
       for (final item in groupEntry.value) {
         buffer.writeln('  ${item.tagName}: ${item.currentValue}');
@@ -487,10 +533,10 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
   }
 
   List<ExifTagItem> get _exportItems {
-    // Flatten merged items into ExifTagItem list for export
+    // Flatten display items into ExifTagItem list for export
     final result = <ExifTagItem>[];
     var index = 0;
-    for (final group in _mergedItems.values) {
+    for (final group in _displayItems.values) {
       for (final item in group) {
         result.add(ExifTagItem(
           index: ++index,
@@ -640,10 +686,10 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
                                   ? const Center(child: CircularProgressIndicator())
                                   : selectedCount == 0
                                       ? const Center(child: Text('Select a file to view EXIF data'))
-                                      : _mergedItems.isEmpty
+                                      : _displayItems.isEmpty
                                           ? const Center(child: Text('No EXIF data for selected files'))
                                           : EditableExifDataTable(
-                                              groupedItems: _mergedItems,
+                                              groupedItems: _displayItems,
                                               showIndex: _settings.showColumnIndex,
                                               showTagId: _settings.showColumnTagId,
                                               showTagName: _settings.showColumnTagName,
@@ -675,9 +721,15 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
                               ),
                               const SizedBox(width: 8),
                               OutlinedButton.icon(
-                                onPressed: _mergedItems.isEmpty ? null : _copySelected,
+                                onPressed: _displayItems.isEmpty ? null : _copySelected,
                                 icon: const Icon(Icons.copy, size: 18),
                                 label: const Text('Copy'),
+                              ),
+                              const SizedBox(width: 8),
+                              OutlinedButton.icon(
+                                onPressed: _selectedIndices.isEmpty ? null : _showAddTagDialog,
+                                icon: const Icon(Icons.add, size: 18),
+                                label: const Text('Add tag'),
                               ),
                               const SizedBox(width: 8),
                               ExportMenu(
