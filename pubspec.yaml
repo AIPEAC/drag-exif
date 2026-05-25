@@ -1,4 +1,4 @@
-name: exifdte
+name: dragexif
 description: A standalone EXIF metadata viewer powered by ExifTool.
 publish_to: 'none'
 version: 1.0.0+1

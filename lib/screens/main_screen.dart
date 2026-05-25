@@ -10,6 +10,7 @@ import '../models/exif_tag_item.dart';
 import '../services/exif_tool_service.dart';
 import '../services/settings_service.dart';
 import '../utils/constants.dart';
+import '../utils/platform_helper.dart';
 import '../widgets/command_preview.dart';
 import '../widgets/error_display.dart';
 import '../widgets/exif_data_table.dart';
@@ -40,6 +41,16 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
     super.initState();
     windowManager.addListener(this);
     _initWindow();
+    _checkExifToolOnStartup();
+  }
+
+  Future<void> _checkExifToolOnStartup() async {
+    final found = await ExifToolService.checkExifToolExists(_settings.exifToolExecutable);
+    if (found == null && mounted) {
+      setState(() {
+        _error = PlatformHelper.installInstructions;
+      });
+    }
   }
 
   Future<void> _initWindow() async {
@@ -93,6 +104,17 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
 
     await windowManager.setTitle('${Constants.appName} v1.0.0 - $filePath');
 
+    // Verify ExifTool exists before running
+    final exifToolResolved = await ExifToolService.checkExifToolExists(_settings.exifToolExecutable);
+    if (exifToolResolved == null) {
+      setState(() {
+        _items = [];
+        _error = PlatformHelper.installInstructions;
+        _isLoading = false;
+      });
+      return;
+    }
+
     try {
       final args = _settings.exifToolArguments.isNotEmpty
           ? _settings.exifToolArguments.split(' ')
@@ -106,9 +128,8 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
       setState(() {
         _items = [];
         _error = e.toString();
-        if (_error.contains("doesn't exist")) {
-          _error = '"exiftool" is not installed or ExifGlass could not find the path. '
-              'To resolve this issue, please open the app settings and update the "Executable path".';
+        if (_error.contains("doesn't exist") || _error.contains('No such file')) {
+          _error = PlatformHelper.installInstructions;
         }
         _errorDetails = stack.toString();
         _isLoading = false;

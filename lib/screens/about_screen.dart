@@ -54,7 +54,7 @@ class _AboutScreenState extends State<AboutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'ExifGlass',
+                      'DragExif',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: Theme.of(context).colorScheme.primary,
@@ -68,13 +68,13 @@ class _AboutScreenState extends State<AboutScreen> {
             const SizedBox(height: 16),
             Text('Version: $_version', style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
-            const Text('Copyright © 2023 - 2025 by Dương Diệu Pháp.'),
+            const Text('Copyright © 2026 by Allen'),
             const Text('All rights reserved.'),
             const SizedBox(height: 12),
             InkWell(
-              onTap: () => _launchUrl('https://github.com/d2phap/ExifGlass'),
+              onTap: () => _launchUrl('https://github.com/AIPEAC/drag-exif'),
               child: Text(
-                'https://github.com/d2phap/ExifGlass',
+                'https://github.com/AIPEAC/drag-exif',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary,
                   decoration: TextDecoration.underline,
@@ -86,13 +86,8 @@ class _AboutScreenState extends State<AboutScreen> {
               title: Text('Credits', style: TextStyle(fontWeight: FontWeight.w600)),
               children: [
                 ListTile(
-                  title: Text('ExifTool'),
-                  subtitle: Text('Distributed under the terms of the Artistic license.\nCopyright © Phil Harvey.'),
-                  dense: true,
-                ),
-                ListTile(
-                  title: Text('Flutter'),
-                  subtitle: Text('Distributed under the terms of the BSD license.\nCopyright © Google LLC.'),
+                  title: Text('ExifGlass'),
+                  subtitle: Text('Original software was written in C#. This project is written based on ExifGlass.\n Distributed under the terms of the GPLv3 license.\nCopyright © 2023-2025, Dương Diệu Pháp.'),
                   dense: true,
                 ),
               ],

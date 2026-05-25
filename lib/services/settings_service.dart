@@ -47,7 +47,7 @@ class SettingsService {
 
   Future<Directory> _getConfigDir() async {
     final appDir = await getApplicationSupportDirectory();
-    final configDir = Directory('${appDir.path}/exif-dte');
+    final configDir = Directory('${appDir.path}/dragexif');
     if (!await configDir.exists()) {
       await configDir.create(recursive: true);
     }

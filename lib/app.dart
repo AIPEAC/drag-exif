@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'screens/main_screen.dart';
 import 'services/settings_service.dart';
 
-class ExifDTEApp extends StatefulWidget {
-  const ExifDTEApp({super.key});
+class DragExifApp extends StatefulWidget {
+  const DragExifApp({super.key});
 
   @override
-  State<ExifDTEApp> createState() => _ExifDTEAppState();
+  State<DragExifApp> createState() => _DragExifAppState();
 }
 
-class _ExifDTEAppState extends State<ExifDTEApp> {
+class _DragExifAppState extends State<DragExifApp> {
   final _settings = SettingsService();
 
   @override
@@ -19,7 +19,7 @@ class _ExifDTEAppState extends State<ExifDTEApp> {
       listenable: _settingsNotifier,
       builder: (context, _) {
         return MaterialApp(
-          title: 'ExifDTE',
+          title: 'DragExif',
           debugShowCheckedModeBanner: false,
           themeMode: _themeMode,
           theme: ThemeData(

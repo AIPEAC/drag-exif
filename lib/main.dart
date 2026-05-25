@@ -23,7 +23,7 @@ void main() async {
     center: true,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden,
+    titleBarStyle: TitleBarStyle.normal,
     alwaysOnTop: settings.enableWindowTopMost,
   );
 
@@ -42,5 +42,5 @@ void main() async {
     }
   });
 
-  runApp(const ExifDTEApp());
+  runApp(const DragExifApp());
 }

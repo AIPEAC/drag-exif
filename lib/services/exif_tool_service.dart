@@ -24,6 +24,47 @@ class ExifToolService {
     return 'exiftool';
   }
 
+  /// Checks if ExifTool is available at the given or default path.
+  /// Returns the resolved path if found, null otherwise.
+  static Future<String?> checkExifToolExists([String? customPath]) async {
+    final path = customPath?.trim() ?? '';
+
+    if (path.isNotEmpty) {
+      // User-specified path
+      final file = File(path);
+      if (await file.exists()) return path;
+      // Also try with .exe on Windows
+      if (Platform.isWindows) {
+        final exeFile = File('$path.exe');
+        if (await exeFile.exists()) return '$path.exe';
+      }
+      return null;
+    }
+
+    // Default: check bundled exiftool.exe on Windows
+    if (Platform.isWindows) {
+      final bundled = '${Directory(Platform.resolvedExecutable).parent.path}\\exiftool.exe';
+      if (await File(bundled).exists()) return bundled;
+    }
+
+    // Check PATH for 'exiftool'
+    try {
+      final result = await Process.run(
+        Platform.isWindows ? 'where' : 'which',
+        ['exiftool'],
+        stdoutEncoding: utf8,
+        stderrEncoding: utf8,
+        runInShell: Platform.isWindows,
+      );
+      if (result.exitCode == 0) {
+        final found = result.stdout.toString().trim().split('\n').first.trim();
+        if (found.isNotEmpty) return found;
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
   Future<List<ExifTagItem>> readAsync(
     String filePath, {
     List<String> extraArgs = const [],
@@ -77,7 +118,7 @@ class ExifToolService {
     if (filePath.codeUnits.any((c) => c > maxAnsiCode)) {
       try {
         final ext = _getExtension(filePath);
-        _tempFilePath = '${Directory.systemTemp.path}/exifdte_temp_${DateTime.now().millisecondsSinceEpoch}$ext';
+        _tempFilePath = '${Directory.systemTemp.path}/dragexif_temp_${DateTime.now().millisecondsSinceEpoch}$ext';
         File(filePath).copySync(_tempFilePath!);
         return true;
       } catch (_) {}
@@ -149,7 +190,7 @@ class ExifToolService {
 
     if (hasError && items.isEmpty) {
       throw Exception(
-        'ExifDTE encountered an error while parsing the output of ExifTool. '
+        'DragExif encountered an error while parsing the output of ExifTool. '
         'Please ensure that the command-line arguments for ExifTool are correct.',
       );
     }
