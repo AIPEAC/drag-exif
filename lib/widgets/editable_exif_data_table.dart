@@ -157,7 +157,7 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
                     color: isUnequal
                         ? Theme.of(context).colorScheme.error
                         : hasPending
-                            ? Theme.of(context).colorScheme.primary
+                            ? Colors.blue
                             : null,
                     fontStyle: isUnequal ? FontStyle.italic : null,
                     fontWeight: hasPending ? FontWeight.w600 : null,
@@ -174,7 +174,7 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
       cells: cells,
       color: hasPending
           ? WidgetStateProperty.all(
-              Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.15),
+              Colors.blue.withValues(alpha: 0.12),
             )
           : null,
     );

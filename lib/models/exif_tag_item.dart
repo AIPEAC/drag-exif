@@ -45,7 +45,7 @@ class ExifTagItem {
 enum ExportFileType { text, csv, json }
 
 /// Represents a tag across multiple files.
-/// When files have different values, [displayValue] shows "<unequal>".
+/// When files have different values, [displayValue] shows `<unequal>`.
 class MergedTagItem {
   final String tagId;
   final String tagGroup;
