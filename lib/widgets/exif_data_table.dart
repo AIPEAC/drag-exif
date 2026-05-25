@@ -3,9 +3,6 @@ DragExif - EXIF metadata viewer
 Copyright (C) 2026 Allen
 Project homepage: https://github.com/AIPEAC/drag-exif
 
-Based on ExifGlass by Dương Diệu Pháp
-Copyright (C) 2023-2025 DUONG DIEU PHAP
-Project homepage: https://github.com/d2phap/ExifGlass
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,6 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 

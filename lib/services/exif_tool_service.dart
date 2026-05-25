@@ -1,11 +1,11 @@
 /*
 DragExif - EXIF metadata viewer
-Copyright (C) 2026 Allen
-Project homepage: https://github.com/AIPEAC/drag-exif
-
 Based on ExifGlass by Dương Diệu Pháp
 Copyright (C) 2023-2025 DUONG DIEU PHAP
 Project homepage: https://github.com/d2phap/ExifGlass
+Copyright (C) 2026 Allen
+Project homepage: https://github.com/AIPEAC/drag-exif
+
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -225,6 +225,46 @@ class ExifToolService {
     final lastSep = filePath.lastIndexOf(sep);
     if (lastSep >= 0) return filePath.substring(lastSep + 1);
     return filePath;
+  }
+
+  /// Writes tag changes to a file using ExifTool.
+  /// Changes are written to a temp file first, then moved over the original.
+  /// Returns the path to the modified file.
+  Future<String> writeTagsAsync(
+    String filePath,
+    Map<String, String> tagChanges, {
+    List<String> extraArgs = const [],
+  }) async {
+    if (tagChanges.isEmpty) return filePath;
+
+    final ext = _getExtension(filePath);
+    final tempFile = '${Directory.systemTemp.path}/dragexif_write_${DateTime.now().millisecondsSinceEpoch}$ext';
+
+    // Copy original to temp
+    await File(filePath).copy(tempFile);
+
+    // Build ExifTool arguments: -TagName="value" for each change
+    final args = <String>[
+      ...extraArgs,
+      ...tagChanges.entries.map((e) => '-${e.key}=${e.value}'),
+      '-overwrite_original',
+      tempFile,
+    ];
+
+    final result = await Process.run(
+      currentExifToolPath,
+      args,
+      stdoutEncoding: utf8,
+      stderrEncoding: utf8,
+    );
+
+    if (result.exitCode != 0) {
+      // Clean up temp file on failure
+      try { File(tempFile).deleteSync(); } catch (_) {}
+      throw Exception('ExifTool failed to write tags: ${result.stderr}');
+    }
+
+    return tempFile;
   }
 
   Future<void> dispose() async {

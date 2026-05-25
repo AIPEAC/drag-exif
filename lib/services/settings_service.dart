@@ -1,11 +1,11 @@
 /*
 DragExif - EXIF metadata viewer
-Copyright (C) 2026 Allen
-Project homepage: https://github.com/AIPEAC/drag-exif
-
 Based on ExifGlass by Dương Diệu Pháp
 Copyright (C) 2023-2025 DUONG DIEU PHAP
 Project homepage: https://github.com/d2phap/ExifGlass
+Copyright (C) 2026 Allen
+Project homepage: https://github.com/AIPEAC/drag-exif
+
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
