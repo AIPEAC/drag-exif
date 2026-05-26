@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/exif_tag_item.dart';
 
@@ -182,11 +183,16 @@ class _ExifDataTableState extends State<ExifDataTable> {
     if (widget.showTagName) {
       cells.add(
         DataCell(
-          Text(
-            item.tagName,
-            style: item.tagName == 'File Name'
-                ? const TextStyle(fontWeight: FontWeight.w600)
-                : null,
+          Tooltip(
+            message: item.tagName,
+            waitDuration: const Duration(milliseconds: 300),
+            child: Text(
+              item.tagName,
+              style: item.tagName == 'File Name'
+                  ? const TextStyle(fontWeight: FontWeight.w600)
+                  : null,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
       );
@@ -194,9 +200,18 @@ class _ExifDataTableState extends State<ExifDataTable> {
     if (widget.showTagValue) {
       cells.add(
         DataCell(
-          Text(
-            item.tagValue,
-            softWrap: true,
+          InkWell(
+            onDoubleTap: () => _showValueDialog(item),
+            child: Tooltip(
+              message: item.tagValue,
+              waitDuration: const Duration(milliseconds: 300),
+              child: Text(
+                item.tagValue,
+                softWrap: true,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              ),
+            ),
           ),
         ),
       );
@@ -205,6 +220,31 @@ class _ExifDataTableState extends State<ExifDataTable> {
     return DataRow2(
       cells: cells,
       onTap: () => widget.onCellTap?.call(item, ''),
+    );
+  }
+
+  Future<void> _showValueDialog(ExifTagItem item) async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${item.tagGroup} › ${item.tagName}'),
+        content: SingleChildScrollView(
+          child: SelectableText(item.tagValue),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: item.tagValue));
+              Navigator.of(context).pop();
+            },
+            child: const Text('Copy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 

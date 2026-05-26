@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../models/exif_tag_item.dart' show MergedTagItem;
 
@@ -124,7 +125,18 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
       cells.add(DataCell(Text(item.tagId)));
     }
     if (widget.showTagName) {
-      cells.add(DataCell(Text(item.tagName)));
+      cells.add(
+        DataCell(
+          Tooltip(
+            message: item.tagName,
+            waitDuration: const Duration(milliseconds: 300),
+            child: Text(
+              item.tagName,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      );
     }
     if (widget.showTagValue) {
       if (isEditing) {
@@ -149,18 +161,26 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
           DataCell(
             InkWell(
               onTap: () => _startEdit(item, groupName, index),
+              onDoubleTap: () => _showValueDialog(item),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(
-                  displayValue,
-                  style: TextStyle(
-                    color: isUnequal
-                        ? Theme.of(context).colorScheme.error
-                        : hasPending
-                            ? Colors.blue
-                            : null,
-                    fontStyle: isUnequal ? FontStyle.italic : null,
-                    fontWeight: hasPending ? FontWeight.w600 : null,
+                child: Tooltip(
+                  message: displayValue,
+                  waitDuration: const Duration(milliseconds: 300),
+                  child: Text(
+                    displayValue,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    style: TextStyle(
+                      color: isUnequal
+                          ? Theme.of(context).colorScheme.error
+                          : hasPending
+                              ? Colors.blue
+                              : null,
+                      fontStyle: isUnequal ? FontStyle.italic : null,
+                      fontWeight: hasPending ? FontWeight.w600 : null,
+                    ),
                   ),
                 ),
               ),
@@ -177,6 +197,31 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
               Colors.blue.withValues(alpha: 0.12),
             )
           : null,
+    );
+  }
+
+  Future<void> _showValueDialog(MergedTagItem item) async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${item.tagGroup} › ${item.tagName}'),
+        content: SingleChildScrollView(
+          child: SelectableText(item.currentValue),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: item.currentValue));
+              Navigator.of(context).pop();
+            },
+            child: const Text('Copy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 
