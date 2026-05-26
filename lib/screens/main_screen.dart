@@ -43,10 +43,6 @@ import '../widgets/unsaved_changes_dialog.dart';
 import 'about_screen.dart';
 import 'settings_screen.dart';
 
-class SaveIntent extends Intent {
-  const SaveIntent();
-}
-
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -85,6 +81,7 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
     windowManager.addListener(this);
     _initWindow();
     _checkExifToolOnStartup();
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
   }
 
   Future<void> _checkExifToolOnStartup() async {
@@ -103,9 +100,23 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
 
   @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     windowManager.removeListener(this);
     _exifTool.dispose();
     super.dispose();
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.keyS &&
+        (HardwareKeyboard.instance.isControlPressed ||
+            HardwareKeyboard.instance.isMetaPressed)) {
+      if (_pendingEdits.isNotEmpty) {
+        _saveChanges();
+      }
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -633,24 +644,8 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
     final hasChanges = _pendingEdits.isNotEmpty;
     final selectedCount = _selectedIndices.length;
 
-    return Shortcuts(
-      shortcuts: {
-        SingleActivator(LogicalKeyboardKey.keyS, control: true): const SaveIntent(),
-        SingleActivator(LogicalKeyboardKey.keyS, meta: true): const SaveIntent(),
-      },
-      child: Actions(
-        actions: {
-          SaveIntent: CallbackAction<SaveIntent>(
-            onInvoke: (_) {
-              if (_pendingEdits.isNotEmpty) {
-                _saveChanges();
-              }
-              return null;
-            },
-          ),
-        },
-        child: Scaffold(
-          body: DropTarget(
+    return Scaffold(
+      body: DropTarget(
         onDragEntered: (_) => setState(() => _dragging = true),
         onDragExited: (_) => setState(() => _dragging = false),
         onDragDone: (detail) async {
@@ -835,8 +830,6 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
                 ),
               ),
             ],
-          ),
-        ),
           ),
         ),
       ),
