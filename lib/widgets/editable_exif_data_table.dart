@@ -174,6 +174,9 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
               onSubmitted: (value) {
                 _finishEdit(item, value);
               },
+              onTapOutside: (_) {
+                _finishEdit(item, _editController.text);
+              },
             ),
           ),
         );
