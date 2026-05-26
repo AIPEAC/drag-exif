@@ -712,66 +712,69 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
                         children: [
                           CommandPreview(command: _allFiles.isNotEmpty ? _commandText : ''),
                           const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              FilledButton.icon(
-                                onPressed: _pickFiles,
-                                icon: const Icon(Icons.folder_open, size: 18),
-                                label: const Text('Open files…'),
-                              ),
-                              const SizedBox(width: 8),
-                              OutlinedButton.icon(
-                                onPressed: _displayItems.isEmpty ? null : _copySelected,
-                                icon: const Icon(Icons.copy, size: 18),
-                                label: const Text('Copy'),
-                              ),
-                              const SizedBox(width: 8),
-                              OutlinedButton.icon(
-                                onPressed: _selectedIndices.isEmpty ? null : _showAddTagDialog,
-                                icon: const Icon(Icons.add, size: 18),
-                                label: const Text('Add tag'),
-                              ),
-                              const SizedBox(width: 8),
-                              ExportMenu(
-                                items: _exportItems,
-                                defaultFileName: selectedCount > 0
-                                    ? '${_allFiles[_selectedIndices.first].fileName.split('.').first}_exif'
-                                    : null,
-                              ),
-                              const Spacer(),
-                              PopupMenuButton<String>(
-                                tooltip: 'Menu',
-                                onSelected: (value) async {
-                                  switch (value) {
-                                    case 'settings':
-                                      await _showSettings();
-                                    case 'about':
-                                      await _showAbout();
-                                    case 'exit':
-                                      final canClose = await _handleUnsavedChangesBeforeAction();
-                                      if (canClose) await windowManager.close();
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  const PopupMenuItem(value: 'settings', child: Text('Settings…')),
-                                  const PopupMenuDivider(),
-                                  const PopupMenuItem(value: 'about', child: Text('About…')),
-                                  const PopupMenuDivider(),
-                                  const PopupMenuItem(value: 'exit', child: Text('Exit')),
-                                ],
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 12),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text('Menu'),
-                                      SizedBox(width: 4),
-                                      Icon(Icons.arrow_drop_down, size: 18),
-                                    ],
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                FilledButton.icon(
+                                  onPressed: _pickFiles,
+                                  icon: const Icon(Icons.folder_open, size: 18),
+                                  label: const Text('Open files…'),
+                                ),
+                                const SizedBox(width: 8),
+                                OutlinedButton.icon(
+                                  onPressed: _displayItems.isEmpty ? null : _copySelected,
+                                  icon: const Icon(Icons.copy, size: 18),
+                                  label: const Text('Copy'),
+                                ),
+                                const SizedBox(width: 8),
+                                OutlinedButton.icon(
+                                  onPressed: _selectedIndices.isEmpty ? null : _showAddTagDialog,
+                                  icon: const Icon(Icons.add, size: 18),
+                                  label: const Text('Add tag'),
+                                ),
+                                const SizedBox(width: 8),
+                                ExportMenu(
+                                  items: _exportItems,
+                                  defaultFileName: selectedCount > 0
+                                      ? '${_allFiles[_selectedIndices.first].fileName.split('.').first}_exif'
+                                      : null,
+                                ),
+                                const SizedBox(width: 24),
+                                PopupMenuButton<String>(
+                                  tooltip: 'Menu',
+                                  onSelected: (value) async {
+                                    switch (value) {
+                                      case 'settings':
+                                        await _showSettings();
+                                      case 'about':
+                                        await _showAbout();
+                                      case 'exit':
+                                        final canClose = await _handleUnsavedChangesBeforeAction();
+                                        if (canClose) await windowManager.close();
+                                    }
+                                  },
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(value: 'settings', child: Text('Settings…')),
+                                    const PopupMenuDivider(),
+                                    const PopupMenuItem(value: 'about', child: Text('About…')),
+                                    const PopupMenuDivider(),
+                                    const PopupMenuItem(value: 'exit', child: Text('Exit')),
+                                  ],
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text('Menu'),
+                                        SizedBox(width: 4),
+                                        Icon(Icons.arrow_drop_down, size: 18),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
