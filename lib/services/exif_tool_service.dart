@@ -161,13 +161,8 @@ class ExifToolService {
     var index = 0;
     final originalFileName = _getFileName(originalFilePath);
 
-    var remaining = output;
-
-    while (remaining.isNotEmpty) {
-      var epos = remaining.indexOf('\r');
-      if (epos < 0) epos = remaining.length;
-
-      final line = remaining.substring(0, epos);
+    for (final line in const LineSplitter().convert(output)) {
+      if (line.trim().isEmpty) continue;
 
       final tpos1 = line.indexOf('\t');
       final tpos2 = line.indexOf('\t', tpos1 + 1);
@@ -203,11 +198,6 @@ class ExifToolService {
       } else {
         hasError = true;
       }
-
-      if (epos < remaining.length) {
-        epos += (remaining.length > epos + 1 && remaining[epos + 1] == '\n') ? 2 : 1;
-      }
-      remaining = remaining.substring(epos);
     }
 
     if (hasError && items.isEmpty) {
