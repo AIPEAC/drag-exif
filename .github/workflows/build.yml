@@ -103,7 +103,7 @@ jobs:
       - name: Package Windows build
         run: |
           cd build/windows/x64/runner/Release
-          7z a ../../../../../../dragexif-windows.zip *
+          7z a ../../../../../dragexif-windows.zip *
 
       - name: Upload portable artifact
         uses: actions/upload-artifact@v4
