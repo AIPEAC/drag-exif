@@ -50,6 +50,13 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
+class _UndoEntry {
+  final String key;
+  final String? previousValue;
+  final bool wasNewTag;
+  _UndoEntry({required this.key, this.previousValue, this.wasNewTag = false});
+}
+
 class _MainScreenState extends State<MainScreen> with WindowListener {
   final _exifTool = ExifToolService();
   final _settings = SettingsService();
@@ -69,6 +76,9 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
 
   // Pending edits: key = "tagGroup|tagId|tagName" -> {tagId, tagName, tagGroup, value}
   final Map<String, Map<String, String>> _pendingEdits = {};
+
+  // Undo stack for tag modifications
+  final List<_UndoEntry> _undoStack = [];
 
   String _error = '';
   String _errorDetails = '';
@@ -107,16 +117,77 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
   }
 
   bool _handleKeyEvent(KeyEvent event) {
-    if (event is KeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.keyS &&
-        (HardwareKeyboard.instance.isControlPressed ||
-            HardwareKeyboard.instance.isMetaPressed)) {
+    if (event is! KeyDownEvent) return false;
+    final isCtrl = HardwareKeyboard.instance.isControlPressed ||
+        HardwareKeyboard.instance.isMetaPressed;
+
+    if (event.logicalKey == LogicalKeyboardKey.keyS && isCtrl) {
       if (_pendingEdits.isNotEmpty) {
         _saveChanges();
       }
       return true;
     }
+
+    if (event.logicalKey == LogicalKeyboardKey.keyZ && isCtrl) {
+      _undo();
+      return true;
+    }
+
     return false;
+  }
+
+  MergedTagItem? _findMergedTagItem(String key) {
+    final parts = key.split('|');
+    final group = parts[0];
+    final tagName = parts.length > 2 ? parts[2] : parts[1];
+
+    for (final item in _mergedItems[group] ?? []) {
+      if (item.tagName == tagName) return item;
+    }
+    for (final item in _newTags[group] ?? []) {
+      if (item.tagName == tagName) return item;
+    }
+    return null;
+  }
+
+  void _undo() {
+    if (_undoStack.isEmpty) return;
+
+    final entry = _undoStack.removeLast();
+    final item = _findMergedTagItem(entry.key);
+
+    setState(() {
+      final prev = entry.previousValue;
+      if (prev != null) {
+        // Restore previous pending value
+        _pendingEdits[entry.key]?['value'] = prev;
+        item?.pendingValue = prev;
+      } else {
+        // No previous value: remove the edit entirely
+        _pendingEdits.remove(entry.key);
+        item?.pendingValue = null;
+
+        if (entry.wasNewTag) {
+          // Remove newly-added tag from _newTags
+          final parts = entry.key.split('|');
+          final group = parts[0];
+          final tagName = parts.length > 2 ? parts[2] : parts[1];
+          _newTags[group]?.removeWhere((t) => t.tagName == tagName);
+          if (_newTags[group]?.isEmpty == true) {
+            _newTags.remove(group);
+          }
+        }
+      }
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Undo'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   @override
@@ -392,8 +463,17 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
   // ──────────────────────────────────────────────────────────
 
   void _onEdit(MergedTagItem item) {
+    final key = '${item.tagGroup}|${item.tagId}|${item.tagName}';
+    final previousValue = _pendingEdits[key]?['value'];
+    final wasNewTag = _newTags[item.tagGroup]?.any((t) => t.tagName == item.tagName) ?? false;
+
+    _undoStack.add(_UndoEntry(
+      key: key,
+      previousValue: previousValue,
+      wasNewTag: wasNewTag && previousValue == null,
+    ));
+
     setState(() {
-      final key = '${item.tagGroup}|${item.tagId}|${item.tagName}';
       _pendingEdits[key] = {
         'tagId': item.tagId,
         'tagName': item.tagName,
@@ -448,6 +528,7 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
       setState(() {
         _pendingEdits.clear();
         _newTags.clear();
+        _undoStack.clear();
         _isLoading = false;
       });
 
@@ -483,6 +564,7 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
     setState(() {
       _pendingEdits.clear();
       _newTags.clear();
+      _undoStack.clear();
       for (final group in _mergedItems.values) {
         for (final item in group) {
           item.pendingValue = null;
