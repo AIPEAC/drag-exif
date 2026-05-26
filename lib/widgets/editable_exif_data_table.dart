@@ -163,47 +163,51 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
       if (isEditing && !readOnly) {
         cells.add(
           DataCell(
-            TextField(
-              controller: _editController,
-              autofocus: true,
-              decoration: const InputDecoration(
-                isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 8),
-                border: InputBorder.none,
+            SizedBox.expand(
+              child: TextField(
+                controller: _editController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  border: InputBorder.none,
+                ),
+                onSubmitted: (value) {
+                  _finishEdit(item, value);
+                },
+                onTapOutside: (_) {
+                  _finishEdit(item, _editController.text);
+                },
               ),
-              onSubmitted: (value) {
-                _finishEdit(item, value);
-              },
-              onTapOutside: (_) {
-                _finishEdit(item, _editController.text);
-              },
             ),
           ),
         );
       } else if (readOnly) {
         cells.add(
           DataCell(
-            InkWell(
-              onTap: () => _showReadOnlyNotice(item),
-              onDoubleTap: () => _showValueDialog(item),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Tooltip(
-                  message: displayValue,
-                  waitDuration: const Duration(milliseconds: 300),
-                  child: Text(
-                    displayValue,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                    style: TextStyle(
-                      color: isUnequal
-                          ? Theme.of(context).colorScheme.error
-                          : hasPending
-                              ? Colors.blue
-                              : null,
-                      fontStyle: isUnequal ? FontStyle.italic : null,
-                      fontWeight: hasPending ? FontWeight.w600 : null,
+            SizedBox.expand(
+              child: InkWell(
+                onTap: () => _showReadOnlyNotice(item),
+                onDoubleTap: () => _showValueDialog(item),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Tooltip(
+                    message: displayValue,
+                    waitDuration: const Duration(milliseconds: 300),
+                    child: Text(
+                      displayValue,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      style: TextStyle(
+                        color: isUnequal
+                            ? Theme.of(context).colorScheme.error
+                            : hasPending
+                                ? Colors.blue
+                                : null,
+                        fontStyle: isUnequal ? FontStyle.italic : null,
+                        fontWeight: hasPending ? FontWeight.w600 : null,
+                      ),
                     ),
                   ),
                 ),
@@ -214,27 +218,29 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
       } else {
         cells.add(
           DataCell(
-            InkWell(
-              onTap: () => _startEdit(item, groupName, index),
-              onDoubleTap: () => _showValueDialog(item),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Tooltip(
-                  message: displayValue,
-                  waitDuration: const Duration(milliseconds: 300),
-                  child: Text(
-                    displayValue,
-                    softWrap: true,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                    style: TextStyle(
-                      color: isUnequal
-                          ? Theme.of(context).colorScheme.error
-                          : hasPending
-                              ? Colors.blue
-                              : null,
-                      fontStyle: isUnequal ? FontStyle.italic : null,
-                      fontWeight: hasPending ? FontWeight.w600 : null,
+            SizedBox.expand(
+              child: InkWell(
+                onTap: () => _startEdit(item, groupName, index),
+                onDoubleTap: () => _showValueDialog(item),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Tooltip(
+                    message: displayValue,
+                    waitDuration: const Duration(milliseconds: 300),
+                    child: Text(
+                      displayValue,
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      style: TextStyle(
+                        color: isUnequal
+                            ? Theme.of(context).colorScheme.error
+                            : hasPending
+                                ? Colors.blue
+                                : null,
+                        fontStyle: isUnequal ? FontStyle.italic : null,
+                        fontWeight: hasPending ? FontWeight.w600 : null,
+                      ),
                     ),
                   ),
                 ),
@@ -284,7 +290,7 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
     setState(() {
       _editingGroup = groupName;
       _editingIndex = index;
-      _editController.text = item.isUnequal ? '' : item.displayValue;
+      _editController.text = item.isUnequal ? '' : item.currentValue;
     });
   }
 
