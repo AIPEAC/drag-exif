@@ -34,7 +34,6 @@ import '../services/exif_tool_service.dart';
 import '../services/settings_service.dart';
 import '../utils/constants.dart';
 import '../utils/platform_helper.dart';
-import '../widgets/command_preview.dart';
 import '../widgets/editable_exif_data_table.dart';
 import '../widgets/error_display.dart';
 import '../widgets/export_menu.dart';
@@ -550,16 +549,6 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
     return result;
   }
 
-  String get _commandText {
-    final args = _settings.exifToolArguments.isNotEmpty ? '${_settings.exifToolArguments} ' : '';
-    final target = _selectedIndices.isEmpty
-        ? ''
-        : _selectedIndices.length > 1
-            ? '${_selectedIndices.length} files'
-            : _allFiles[_selectedIndices.first].path;
-    return '${_exifTool.currentExifToolPath} ${Constants.defaultCommands} $args"$target"';
-  }
-
   // ──────────────────────────────────────────────────────────
   // Settings / About
   // ──────────────────────────────────────────────────────────
@@ -710,8 +699,6 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          CommandPreview(command: _allFiles.isNotEmpty ? _commandText : ''),
-                          const SizedBox(height: 12),
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
