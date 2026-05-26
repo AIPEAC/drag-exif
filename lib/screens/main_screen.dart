@@ -496,7 +496,11 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
     try {
       final tagChanges = <String, String>{};
       for (final edit in _pendingEdits.values) {
-        tagChanges[edit['tagName']!] = edit['value']!;
+        final group = edit['tagGroup']!;
+        final tagName = edit['tagName']!;
+        // Use group prefix so ExifTool writes to the correct namespace
+        // (e.g. XMP-dc:Creator instead of just Creator)
+        tagChanges['$group:$tagName'] = edit['value']!;
       }
 
       // Determine which files to save to
@@ -633,25 +637,33 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
     final result = await AddTagDialog.show(context);
     if (result == null) return;
 
-    final key = '${result.group}||${result.tagName}';
+    // Normalize XMP sub-groups for display (XMP-dc, XMP-xmp, etc. → XMP)
+    final displayGroup = result.group.startsWith('XMP-') ? 'XMP' : result.group;
+    final key = '$displayGroup||${result.tagName}';
+    _undoStack.add(_UndoEntry(
+      key: key,
+      previousValue: null,
+      wasNewTag: true,
+    ));
+
     setState(() {
       _pendingEdits[key] = {
         'tagId': '',
         'tagName': result.tagName,
-        'tagGroup': result.group,
+        'tagGroup': displayGroup,
         'value': result.value,
       };
 
       final newItem = MergedTagItem(
         tagId: '',
-        tagGroup: result.group,
+        tagGroup: displayGroup,
         tagName: result.tagName,
         fileValues: {},
         displayValue: '<new>',
         isUnequal: false,
         pendingValue: result.value,
       );
-      _newTags.putIfAbsent(result.group, () => []).add(newItem);
+      _newTags.putIfAbsent(displayGroup, () => []).add(newItem);
     });
   }
 

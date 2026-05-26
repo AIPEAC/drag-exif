@@ -210,7 +210,10 @@ class ExifToolService {
       if (tpos1 > 0 && tpos2 > 0 && tpos3 > 0) {
         // New tag line: Group \t TagID \t TagName \t Value
         flushPending();
-        pendingGroup = line.substring(0, tpos1);
+        var tagGroup = line.substring(0, tpos1);
+        // Normalize XMP sub-groups (XMP-dc, XMP-xmp, etc.) to plain XMP
+        if (tagGroup.startsWith('XMP-')) tagGroup = 'XMP';
+        pendingGroup = tagGroup;
         pendingId = line.substring(tpos1 + 1, tpos2);
         pendingName = line.substring(tpos2 + 1, tpos3);
         pendingValue.write(line.substring(tpos3 + 1));

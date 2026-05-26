@@ -132,7 +132,8 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
 
   DataRow2 _buildRow(MergedTagItem item, String groupName, int index) {
     final isEditing = _editingGroup == groupName && _editingIndex == index;
-    final displayValue = item.currentValue;
+    final isMarkedForDeletion = item.pendingValue != null && item.pendingValue!.isEmpty;
+    final displayValue = isMarkedForDeletion ? '<delete>' : item.currentValue;
     final isUnequal = item.isUnequal && item.pendingValue == null;
     final hasPending = item.hasPendingChange;
     final readOnly = _isReadOnly(item);
@@ -233,12 +234,14 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
                       style: TextStyle(
-                        color: isUnequal
+                        color: isMarkedForDeletion
                             ? Theme.of(context).colorScheme.error
-                            : hasPending
-                                ? Colors.blue
-                                : null,
-                        fontStyle: isUnequal ? FontStyle.italic : null,
+                            : isUnequal
+                                ? Theme.of(context).colorScheme.error
+                                : hasPending
+                                    ? Colors.blue
+                                    : null,
+                        fontStyle: isUnequal || isMarkedForDeletion ? FontStyle.italic : null,
                         fontWeight: hasPending ? FontWeight.w600 : null,
                       ),
                     ),
@@ -249,6 +252,30 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
           ),
         );
       }
+    }
+
+    // Delete icon
+    if (!readOnly) {
+      cells.add(
+        DataCell(
+          SizedBox.expand(
+            child: InkWell(
+              onTap: () {
+                item.pendingValue = '';
+                widget.onEdit?.call(item);
+              },
+              child: const Align(
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.delete_outline,
+                  size: 16,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
     }
 
     return DataRow2(
