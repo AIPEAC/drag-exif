@@ -84,6 +84,7 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
   String _errorDetails = '';
   bool _isLoading = false;
   bool _dragging = false;
+  double _leftPanelWidth = 260;
 
   @override
   void initState() {
@@ -754,7 +755,7 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
             children: [
               // ── Left: File list panel ──
               SizedBox(
-                width: 260,
+                width: _leftPanelWidth,
                 child: FileListPanel(
                   files: _allFiles,
                   selectedIndices: _selectedIndices,
@@ -765,7 +766,19 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
                 ),
               ),
 
-              const VerticalDivider(width: 1),
+              // Draggable splitter
+              MouseRegion(
+                cursor: SystemMouseCursors.resizeLeftRight,
+                child: GestureDetector(
+                  onHorizontalDragUpdate: (details) {
+                    setState(() {
+                      _leftPanelWidth += details.delta.dx;
+                      _leftPanelWidth = _leftPanelWidth.clamp(150.0, 500.0);
+                    });
+                  },
+                  child: const VerticalDivider(width: 1),
+                ),
+              ),
 
               // ── Right: Main content ──
               Expanded(
