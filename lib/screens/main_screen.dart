@@ -770,13 +770,22 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
               MouseRegion(
                 cursor: SystemMouseCursors.resizeLeftRight,
                 child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
                   onHorizontalDragUpdate: (details) {
                     setState(() {
                       _leftPanelWidth += details.delta.dx;
                       _leftPanelWidth = _leftPanelWidth.clamp(150.0, 500.0);
                     });
                   },
-                  child: const VerticalDivider(width: 1),
+                  child: SizedBox(
+                    width: 8,
+                    child: Center(
+                      child: VerticalDivider(
+                        width: 1,
+                        color: Theme.of(context).dividerColor,
+                      ),
+                    ),
+                  ),
                 ),
               ),
 
