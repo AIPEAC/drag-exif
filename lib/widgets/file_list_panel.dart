@@ -209,6 +209,7 @@ class _FileListPanelState extends State<FileListPanel> {
                                   ),
                                   onSubmitted: (_) => _finishRename(index),
                                   onEditingComplete: () => _finishRename(index),
+                                  onTapOutside: (_) => _finishRename(index),
                                 ),
                               )
                             : GestureDetector(
