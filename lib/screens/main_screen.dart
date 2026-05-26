@@ -182,14 +182,6 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
       }
     });
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Undo'),
-          duration: Duration(seconds: 1),
-        ),
-      );
-    }
   }
 
   @override
@@ -443,20 +435,8 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
         file.path = newPath;
       });
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('File renamed'),
-            duration: Duration(seconds: 1),
-          ),
-        );
-      }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error renaming file: $e')),
-        );
-      }
+      // ignored
     }
   }
 
@@ -547,18 +527,8 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
       );
       _rebuildMergedView();
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Changes saved successfully')),
-        );
-      }
     } catch (e) {
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving: $e')),
-        );
-      }
     }
   }
 
@@ -679,11 +649,6 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
       buffer.writeln();
     }
     await Clipboard.setData(ClipboardData(text: buffer.toString()));
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Copied to clipboard'), duration: Duration(seconds: 1)),
-      );
-    }
   }
 
   List<ExifTagItem> get _exportItems {

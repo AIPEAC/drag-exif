@@ -119,23 +119,13 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
       _readOnlyGroups.contains(item.tagGroup);
 
   void _showReadOnlyNotice(MergedTagItem item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${item.tagGroup} › ${item.tagName} is read-only. '
-          'File-system properties cannot be edited through EXIF metadata.',
-        ),
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-        width: 400,
-      ),
-    );
+    // read-only notice removed per user request
   }
 
   DataRow2 _buildRow(MergedTagItem item, String groupName, int index) {
     final isEditing = _editingGroup == groupName && _editingIndex == index;
     final isMarkedForDeletion = item.pendingValue != null && item.pendingValue!.isEmpty;
-    final displayValue = isMarkedForDeletion ? '<delete>' : item.currentValue;
+    final displayValue = isMarkedForDeletion ? '<temp>' : item.currentValue;
     final isUnequal = item.isUnequal && item.pendingValue == null;
     final hasPending = item.hasPendingChange;
     final readOnly = _isReadOnly(item);

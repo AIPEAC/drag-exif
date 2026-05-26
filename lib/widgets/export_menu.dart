@@ -68,31 +68,20 @@ class ExportMenu extends StatelessWidget {
 
   Future<void> _export(BuildContext context, ExportFileType type) async {
     String content;
-    String ext;
 
     switch (type) {
       case ExportFileType.text:
         content = Exporters.toText(items);
-        ext = 'txt';
       case ExportFileType.csv:
         content = Exporters.toCsv(items);
-        ext = 'csv';
       case ExportFileType.json:
         content = Exporters.toJson(items);
-        ext = 'json';
     }
 
     // For now, copy to clipboard as a quick win
     // File save dialog can be added later with file_selector
     await Clipboard.setData(ClipboardData(text: content));
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Exported as $ext and copied to clipboard'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
+    // ignored
   }
 }
