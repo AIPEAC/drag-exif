@@ -33,7 +33,7 @@ class PlatformHelper {
 
   static String get installCommand {
     if (isWindows) {
-      return 'Download ExifTool from https://exiftool.org and place exiftool.exe in the app folder, or add it to your PATH.';
+      return '#if you have scoop installed \n scoop install exiftool';
     }
     if (isLinux) {
       return 'sudo apt install libimage-exiftool-perl';
@@ -41,7 +41,7 @@ class PlatformHelper {
     if (isMacOS) {
       return 'brew install exiftool';
     }
-    return 'Please install ExifTool for your platform.';
+    return 'Unknown platform. Please install ExifTool for your platform.';
   }
 
   static String get downloadUrl => 'https://exiftool.org';
@@ -52,10 +52,13 @@ class PlatformHelper {
     buffer.writeln();
     buffer.writeln('Platform: $platformName');
     buffer.writeln();
-    buffer.writeln('To install ExifTool, run:');
+    buffer.writeln('To install ExifTool:');
     buffer.writeln(installCommand);
     buffer.writeln();
     buffer.writeln('Or download it from: $downloadUrl');
+    if (isWindows) {
+      buffer.writeln('After downloading, make sure to add ExifTool to your system PATH.');
+    }
     return buffer.toString();
   }
 }

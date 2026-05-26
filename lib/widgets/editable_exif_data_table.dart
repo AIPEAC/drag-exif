@@ -110,11 +110,32 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
     return columns;
   }
 
+  /// Groups that contain read-only file-system derived tags.
+  static const _readOnlyGroups = {'File', 'ICC_Profile'};
+
+  bool _isReadOnly(MergedTagItem item) =>
+      _readOnlyGroups.contains(item.tagGroup);
+
+  void _showReadOnlyNotice(MergedTagItem item) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${item.tagGroup} › ${item.tagName} is read-only. '
+          'File-system properties cannot be edited through EXIF metadata.',
+        ),
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        width: 400,
+      ),
+    );
+  }
+
   DataRow2 _buildRow(MergedTagItem item, String groupName, int index) {
     final isEditing = _editingGroup == groupName && _editingIndex == index;
     final displayValue = item.currentValue;
     final isUnequal = item.isUnequal && item.pendingValue == null;
     final hasPending = item.hasPendingChange;
+    final readOnly = _isReadOnly(item);
 
     final cells = <DataCell>[];
 
@@ -139,7 +160,7 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
       );
     }
     if (widget.showTagValue) {
-      if (isEditing) {
+      if (isEditing && !readOnly) {
         cells.add(
           DataCell(
             TextField(
@@ -153,6 +174,37 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
               onSubmitted: (value) {
                 _finishEdit(item, value);
               },
+            ),
+          ),
+        );
+      } else if (readOnly) {
+        cells.add(
+          DataCell(
+            InkWell(
+              onTap: () => _showReadOnlyNotice(item),
+              onDoubleTap: () => _showValueDialog(item),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Tooltip(
+                  message: displayValue,
+                  waitDuration: const Duration(milliseconds: 300),
+                  child: Text(
+                    displayValue,
+                    softWrap: true,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                    style: TextStyle(
+                      color: isUnequal
+                          ? Theme.of(context).colorScheme.error
+                          : hasPending
+                              ? Colors.blue
+                              : null,
+                      fontStyle: isUnequal ? FontStyle.italic : null,
+                      fontWeight: hasPending ? FontWeight.w600 : null,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         );

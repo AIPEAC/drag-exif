@@ -328,6 +328,50 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
     _rebuildMergedView();
   }
 
+  Future<void> _renameFile(int index, String newName) async {
+    final file = _allFiles[index];
+    final oldPath = file.path;
+    final lastSep = oldPath.lastIndexOf(Platform.pathSeparator);
+    final dir = lastSep >= 0 ? oldPath.substring(0, lastSep) : '';
+    final newPath = dir.isNotEmpty
+        ? '$dir${Platform.pathSeparator}$newName'
+        : newName;
+
+    if (newPath == oldPath) return;
+
+    try {
+      final oldFile = File(oldPath);
+      if (await oldFile.exists()) {
+        try {
+          await oldFile.rename(newPath);
+        } catch (_) {
+          // Cross-device rename fallback
+          await oldFile.copy(newPath);
+          await oldFile.delete();
+        }
+      }
+
+      setState(() {
+        file.path = newPath;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('File renamed'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error renaming file: $e')),
+        );
+      }
+    }
+  }
+
   // ──────────────────────────────────────────────────────────
   // Editing
   // ──────────────────────────────────────────────────────────
@@ -620,6 +664,7 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
                   lastClickedIndex: _lastClickedIndex,
                   onSelect: _onSelectFile,
                   onRemove: _removeFile,
+                  onRename: _renameFile,
                 ),
               ),
 

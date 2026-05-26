@@ -23,8 +23,14 @@ import 'dart:io';
 import 'exif_tag_item.dart';
 
 class LoadedFile {
-  final String path;
-  late final String fileName;
+  String _path;
+  String get path => _path;
+  set path(String value) {
+    _path = value;
+    fileName = _path.split(Platform.pathSeparator).last;
+  }
+
+  late String fileName;
   List<ExifTagItem> tags;
   bool isLoaded;
   bool isLoading;
@@ -32,14 +38,14 @@ class LoadedFile {
   String? errorMessage;
 
   LoadedFile({
-    required this.path,
+    required String path,
     this.tags = const [],
     this.isLoaded = false,
     this.isLoading = false,
     this.hasError = false,
     this.errorMessage,
-  }) {
-    fileName = path.split(Platform.pathSeparator).last;
+  }) : _path = path {
+    fileName = _path.split(Platform.pathSeparator).last;
   }
 
 
