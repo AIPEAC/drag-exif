@@ -107,6 +107,8 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
     if (widget.showTagValue) {
       columns.add(DataColumn2(size: ColumnSize.L, label: const Text('Value')));
     }
+    // Action column (delete)
+    columns.add(const DataColumn2(size: ColumnSize.S, label: Text('')));
     return columns;
   }
 
@@ -255,28 +257,28 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
     }
 
     // Delete icon
-    if (!readOnly) {
-      cells.add(
-        DataCell(
-          SizedBox.expand(
-            child: InkWell(
-              onTap: () {
-                item.pendingValue = '';
-                widget.onEdit?.call(item);
-              },
-              child: const Align(
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.delete_outline,
-                  size: 16,
-                  color: Colors.grey,
+    cells.add(
+      DataCell(
+        SizedBox.expand(
+          child: readOnly
+              ? const SizedBox.shrink()
+              : InkWell(
+                  onTap: () {
+                    item.pendingValue = '';
+                    widget.onEdit?.call(item);
+                  },
+                  child: const Align(
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.delete_outline,
+                      size: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
         ),
-      );
-    }
+      ),
+    );
 
     return DataRow2(
       cells: cells,
