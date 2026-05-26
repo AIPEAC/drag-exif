@@ -326,6 +326,9 @@ class _EditableExifDataTableState extends State<EditableExifDataTable> {
       _editingGroup = null;
       _editingIndex = null;
     });
-    widget.onEdit?.call(item..pendingValue = value);
+    // Only register an edit if the value actually changed
+    if (value != item.currentValue) {
+      widget.onEdit?.call(item..pendingValue = value);
+    }
   }
 }

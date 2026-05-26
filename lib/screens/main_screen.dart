@@ -107,6 +107,7 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
   Future<void> _initWindow() async {
     await windowManager.setTitle('${Constants.appName} v1.0.0');
     await windowManager.setMinimumSize(const Size(700, 500));
+    await windowManager.setPreventClose(true);
   }
 
   @override
