@@ -28,9 +28,6 @@ import '../utils/constants.dart';
 
 class ExifToolService {
   String exifToolPath = '';
-  String originalFilePath = '';
-  String cleanedFilePath = '';
-  bool isFilePathDirty = false;
 
   String get currentExifToolPath {
     if (exifToolPath.trim().isEmpty) {
@@ -91,11 +88,10 @@ class ExifToolService {
     String filePath, {
     List<String> extraArgs = const [],
   }) async {
-    await _deleteTempFiles();
-
-    isFilePathDirty = _checkAndPurifyUnicodePath(filePath);
-    originalFilePath = filePath;
-    cleanedFilePath = isFilePathDirty ? _tempFilePath! : filePath;
+    // If the path contains non-ASCII characters, create a temp copy
+    // because ExifTool may not handle Unicode paths well.
+    final tempPath = _purifyUnicodePath(filePath);
+    final cleanedFilePath = tempPath ?? filePath;
 
     final args = <String>[
       ...Constants.defaultCommands.split(' '),
@@ -110,43 +106,38 @@ class ExifToolService {
       stderrEncoding: utf8,
     );
 
+    // Clean up temp file immediately after ExifTool finishes
+    if (tempPath != null) {
+      try { File(tempPath).deleteSync(); } catch (_) {}
+    }
+
     if (result.stderr.toString().isNotEmpty &&
         !result.stderr.toString().startsWith('-- press ENTER --')) {
       throw Exception(result.stderr.toString().trim());
     }
 
-    return parseExifTags(result.stdout.toString());
+    return parseExifTags(
+      output: result.stdout.toString(),
+      originalFilePath: filePath,
+      usedTempCopy: tempPath != null,
+    );
   }
 
-  Future<void> _deleteTempFiles() async {
-    if (isFilePathDirty && originalFilePath != cleanedFilePath) {
-      try {
-        final file = File(cleanedFilePath);
-        if (await file.exists()) {
-          await file.delete();
-        }
-      } catch (_) {}
-    }
-    _tempFilePath = null;
-  }
-
-  String? _tempFilePath;
-
-  bool _checkAndPurifyUnicodePath(String filePath) {
-    if (filePath.isEmpty) return false;
+  String? _purifyUnicodePath(String filePath) {
+    if (filePath.isEmpty) return null;
 
     const maxAnsiCode = 255;
 
     if (filePath.codeUnits.any((c) => c > maxAnsiCode)) {
       try {
         final ext = _getExtension(filePath);
-        _tempFilePath = '${Directory.systemTemp.path}/dragexif_temp_${DateTime.now().millisecondsSinceEpoch}$ext';
-        File(filePath).copySync(_tempFilePath!);
-        return true;
+        final tempPath = '${Directory.systemTemp.path}/dragexif_temp_${DateTime.now().millisecondsSinceEpoch}$ext';
+        File(filePath).copySync(tempPath);
+        return tempPath;
       } catch (_) {}
     }
 
-    return false;
+    return null;
   }
 
   String _getExtension(String filePath) {
@@ -155,7 +146,11 @@ class ExifToolService {
     return '';
   }
 
-  List<ExifTagItem> parseExifTags(String output) {
+  List<ExifTagItem> parseExifTags({
+    required String output,
+    required String originalFilePath,
+    required bool usedTempCopy,
+  }) {
     final items = <ExifTagItem>[];
     var index = 0;
     final originalFileName = _getFileName(originalFilePath);
@@ -182,7 +177,7 @@ class ExifToolService {
       tagValue = tagValue.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 
       // Restore original path info when a temp copy was used for Unicode paths
-      if (isFilePathDirty) {
+      if (usedTempCopy) {
         if (pendingName == 'File Name') {
           tagValue = originalFileName;
         } else if (pendingName == 'Directory') {
@@ -294,6 +289,6 @@ class ExifToolService {
   }
 
   Future<void> dispose() async {
-    await _deleteTempFiles();
+    // No-op: temp files are cleaned up immediately after each readAsync call.
   }
 }
