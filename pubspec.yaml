@@ -39,6 +39,17 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  msix: ^3.16.8
+
+msix_config:
+  display_name: DragExif
+  publisher_display_name: AIPEAC
+  identity_name: AIPEAC.DragExif
+  msix_version: 1.0.0.0
+  logo_path: windows/runner/resources/app_icon.ico
+  capabilities: internetClient
+  execution_alias: dragexif
+  install_certificate: false
 
 flutter:
   uses-material-design: true
