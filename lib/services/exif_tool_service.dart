@@ -157,9 +157,48 @@ class ExifToolService {
 
   List<ExifTagItem> parseExifTags(String output) {
     final items = <ExifTagItem>[];
-    var hasError = false;
     var index = 0;
     final originalFileName = _getFileName(originalFilePath);
+
+    String? pendingGroup;
+    String? pendingId;
+    String? pendingName;
+    final pendingValue = StringBuffer();
+
+    void flushPending() {
+      if (pendingName == null) return;
+
+      var tagValue = pendingValue.toString();
+
+      // Remove binary data hint
+      const binaryHint = ', use -b option to extract';
+      final hintPos = tagValue.indexOf(binaryHint);
+      if (hintPos >= 0) {
+        tagValue = tagValue.substring(0, hintPos);
+      }
+
+      // Normalize all line endings to \n (Windows \r\n, old Mac \r -> \n)
+      tagValue = tagValue.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+
+      // Preserve original filename
+      if (pendingName == 'File Name') {
+        tagValue = originalFileName;
+      }
+
+      items.add(ExifTagItem(
+        index: index + 1,
+        tagId: pendingId!,
+        tagGroup: pendingGroup!,
+        tagName: pendingName!,
+        tagValue: tagValue,
+      ));
+
+      index++;
+      pendingGroup = null;
+      pendingId = null;
+      pendingName = null;
+      pendingValue.clear();
+    }
 
     for (final line in const LineSplitter().convert(output)) {
       if (line.trim().isEmpty) continue;
@@ -169,38 +208,23 @@ class ExifToolService {
       final tpos3 = line.indexOf('\t', tpos2 + 1);
 
       if (tpos1 > 0 && tpos2 > 0 && tpos3 > 0) {
-        final tagGroup = line.substring(0, tpos1);
-        final tagId = line.substring(tpos1 + 1, tpos2);
-        final tagName = line.substring(tpos2 + 1, tpos3);
-        var tagValue = line.substring(tpos3 + 1);
-
-        // Remove binary data hint
-        final binaryHint = ', use -b option to extract';
-        final hintPos = tagValue.indexOf(binaryHint);
-        if (hintPos >= 0) {
-          tagValue = tagValue.substring(0, hintPos);
-        }
-
-        // Preserve original filename
-        if (tagName == 'File Name') {
-          tagValue = originalFileName;
-        }
-
-        items.add(ExifTagItem(
-          index: index + 1,
-          tagId: tagId,
-          tagGroup: tagGroup,
-          tagName: tagName,
-          tagValue: tagValue,
-        ));
-
-        index++;
-      } else {
-        hasError = true;
+        // New tag line: Group \t TagID \t TagName \t Value
+        flushPending();
+        pendingGroup = line.substring(0, tpos1);
+        pendingId = line.substring(tpos1 + 1, tpos2);
+        pendingName = line.substring(tpos2 + 1, tpos3);
+        pendingValue.write(line.substring(tpos3 + 1));
+      } else if (pendingName != null) {
+        // Continuation line (the tag value contained a line break)
+        pendingValue.write('\n');
+        pendingValue.write(line);
       }
+      // Stray lines before the first tag are ignored
     }
 
-    if (hasError && items.isEmpty) {
+    flushPending();
+
+    if (items.isEmpty) {
       throw Exception(
         'DragExif encountered an error while parsing the output of ExifTool. '
         'Please ensure that the command-line arguments for ExifTool are correct.',
