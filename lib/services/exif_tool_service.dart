@@ -159,6 +159,7 @@ class ExifToolService {
     final items = <ExifTagItem>[];
     var index = 0;
     final originalFileName = _getFileName(originalFilePath);
+    final originalDir = _getDirectory(originalFilePath);
 
     String? pendingGroup;
     String? pendingId;
@@ -180,9 +181,13 @@ class ExifToolService {
       // Normalize all line endings to \n (Windows \r\n, old Mac \r -> \n)
       tagValue = tagValue.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 
-      // Preserve original filename
-      if (pendingName == 'File Name') {
-        tagValue = originalFileName;
+      // Restore original path info when a temp copy was used for Unicode paths
+      if (isFilePathDirty) {
+        if (pendingName == 'File Name') {
+          tagValue = originalFileName;
+        } else if (pendingName == 'Directory') {
+          tagValue = originalDir;
+        }
       }
 
       items.add(ExifTagItem(
@@ -239,6 +244,13 @@ class ExifToolService {
     final lastSep = filePath.lastIndexOf(sep);
     if (lastSep >= 0) return filePath.substring(lastSep + 1);
     return filePath;
+  }
+
+  String _getDirectory(String filePath) {
+    final sep = Platform.pathSeparator;
+    final lastSep = filePath.lastIndexOf(sep);
+    if (lastSep >= 0) return filePath.substring(0, lastSep);
+    return '';
   }
 
   /// Writes tag changes to a file using ExifTool.
