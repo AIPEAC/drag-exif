@@ -12,6 +12,7 @@ dependencies:
 
   # UI
   data_table_2: ^2.5.15
+  flex_color_scheme: ^8.2.0
 
   # Window management
   window_manager: ^0.4.3

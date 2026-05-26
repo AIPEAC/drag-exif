@@ -17,6 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 
 import 'screens/main_screen.dart';
@@ -41,19 +42,31 @@ class _DragExifAppState extends State<DragExifApp> {
           title: 'DragExif',
           debugShowCheckedModeBanner: false,
           themeMode: _themeMode,
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.blue,
-              brightness: Brightness.light,
-            ),
+          theme: FlexThemeData.light(
+            scheme: FlexScheme.blueWhale,
             useMaterial3: true,
+            subThemesData: const FlexSubThemesData(
+              interactionEffects: true,
+              tintedDisabledControls: true,
+              inputDecoratorBorderType: FlexInputBorderType.outline,
+              inputDecoratorRadius: 8,
+              cardRadius: 10,
+              popupMenuRadius: 8,
+              popupMenuElevation: 3,
+            ),
           ),
-          darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.blue,
-              brightness: Brightness.dark,
-            ),
+          darkTheme: FlexThemeData.dark(
+            scheme: FlexScheme.blueWhale,
             useMaterial3: true,
+            subThemesData: const FlexSubThemesData(
+              interactionEffects: true,
+              tintedDisabledControls: true,
+              inputDecoratorBorderType: FlexInputBorderType.outline,
+              inputDecoratorRadius: 8,
+              cardRadius: 10,
+              popupMenuRadius: 8,
+              popupMenuElevation: 3,
+            ),
           ),
           home: const MainScreen(),
         );
