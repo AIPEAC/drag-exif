@@ -45,14 +45,27 @@ static void my_application_activate(GApplication* application) {
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "exifdte");
+    gtk_header_bar_set_title(header_bar, "DragExif");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
-    gtk_window_set_title(window, "exifdte");
+    gtk_window_set_title(window, "DragExif");
   }
 
   gtk_window_set_default_size(window, 1280, 720);
+
+  // Set window icon from bundled icon file
+  gchar* exe_path = g_file_read_link("/proc/self/exe", NULL);
+  if (exe_path != NULL) {
+    gchar* exe_dir = g_path_get_dirname(exe_path);
+    gchar* icon_path = g_build_filename(exe_dir, "data", "icons", "app_icon.png", NULL);
+    if (g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
+      gtk_window_set_icon_from_file(window, icon_path, NULL);
+    }
+    g_free(icon_path);
+    g_free(exe_dir);
+    g_free(exe_path);
+  }
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(

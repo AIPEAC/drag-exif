@@ -340,7 +340,7 @@ class _MainScreenState extends State<MainScreen> with WindowListener {
       return;
     }
 
-    _exifTool.exifToolPath = _settings.exifToolExecutable;
+    _exifTool.exifToolPath = exifToolResolved;
 
     // Load EXIF for all files in parallel
     final args = _settings.exifToolArguments.isNotEmpty

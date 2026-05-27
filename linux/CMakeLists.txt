@@ -7,7 +7,7 @@ project(runner LANGUAGES CXX)
 set(BINARY_NAME "dragexif")
 # The unique GTK application identifier for this application. See:
 # https://wiki.gnome.org/HowDoI/ChooseApplicationID
-set(APPLICATION_ID "com.example.dragexif")
+set(APPLICATION_ID "com.aipeac.dragexif")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -120,6 +120,13 @@ install(CODE "
   " COMPONENT Runtime)
 install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
   DESTINATION "${INSTALL_BUNDLE_DATA_DIR}" COMPONENT Runtime)
+
+# Install application icons
+set(APP_ICON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/runner/icons")
+install(DIRECTORY "${APP_ICON_DIR}/"
+  DESTINATION "${INSTALL_BUNDLE_DATA_DIR}/icons"
+  COMPONENT Runtime
+  FILES_MATCHING PATTERN "*.png")
 
 # Install the AOT library on non-Debug builds only.
 if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
