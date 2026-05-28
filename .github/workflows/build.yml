@@ -38,12 +38,6 @@ jobs:
           flutter-version: ${{ steps.flutter-version.outputs.flutter }}
           cache: true
 
-      - name: Install flutter-no-debugprint-release
-        run: |
-          git clone https://github.com/AIPEAC/flutter-no-debugprint-release.git /tmp/ndrelease
-          cd /tmp/ndrelease
-          ./install.sh <<< "y"
-
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
@@ -55,19 +49,13 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
-      - name: Build Linux (stripped)
-        run: |
-          export PATH="$HOME/.flutter-ndrelease:$PATH"
-          flutter build linux --ndrelease
+      - name: Build Linux (release)
+        run: flutter build linux --release
 
       - name: Package Linux build
         run: |
-          echo "=== Listing build/ndrelease contents ==="
-          find build/ndrelease -type d 2>/dev/null | head -30 || true
-          echo "=== Packaging ==="
-          cd build/ndrelease/linux/x64/release
+          cd build/linux/x64/release
           tar czf "$(git rev-parse --show-toplevel)/dragexif-linux.tar.gz" bundle/
-          ls -la "$(git rev-parse --show-toplevel)/dragexif-linux.tar.gz"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -103,29 +91,16 @@ jobs:
           flutter-version: ${{ steps.flutter-version.outputs.flutter }}
           cache: true
 
-      - name: Install flutter-no-debugprint-release
-        shell: bash
-        run: |
-          git clone https://github.com/AIPEAC/flutter-no-debugprint-release.git /tmp/ndrelease
-          cd /tmp/ndrelease
-          # install.sh deletes the clone on "y"; copy Windows files first
-          mkdir -p "$HOME/.flutter-ndrelease"
-          cp bin/flutter.bat "$HOME/.flutter-ndrelease/"
-          cp bin/flutter.ps1 "$HOME/.flutter-ndrelease/"
-          ./install.sh <<< "y"
-
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Windows (stripped)
-        run: |
-          $env:PATH = "$env:USERPROFILE\.flutter-ndrelease;" + $env:PATH
-          flutter build windows --ndrelease
+      - name: Build Windows (release)
+        run: flutter build windows --release
 
       - name: Stage MSIX build
         run: |
           New-Item -ItemType Directory -Force -Path build/windows/x64/runner/Release
-          $src = "build/ndrelease/windows/x64/runner/Release"
+          $src = "build/windows/x64/runner/Release"
           if (Test-Path $src) {
             Copy-Item -Path "$src/*" -Destination build/windows/x64/runner/Release/ -Recurse -Force
           } else {
@@ -141,9 +116,7 @@ jobs:
           }
 
       - name: Build MSIX
-        run: |
-          $env:PATH = "$env:USERPROFILE\.flutter-ndrelease;" + $env:PATH
-          flutter pub run msix:create
+        run: flutter pub run msix:create
 
       - name: Package Windows build
         run: |
