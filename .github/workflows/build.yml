@@ -99,20 +99,11 @@ jobs:
 
       - name: Stage MSIX build
         run: |
-          New-Item -ItemType Directory -Force -Path build/windows/x64/runner/Release
-          $src = "build/windows/x64/runner/Release"
-          if (Test-Path $src) {
-            Copy-Item -Path "$src/*" -Destination build/windows/x64/runner/Release/ -Recurse -Force
-          } else {
-            Write-Host "Source path $src does not exist. Trying to find Release dir..." -ForegroundColor Yellow
-            $releaseDir = Get-ChildItem -Path build -Recurse -Directory -Filter "Release" -ErrorAction SilentlyContinue | Select-Object -First 1
-            if ($releaseDir) {
-              Write-Host "Found Release dir at: $($releaseDir.FullName)" -ForegroundColor Green
-              Copy-Item -Path "$($releaseDir.FullName)/*" -Destination build/windows/x64/runner/Release/ -Recurse -Force
-            } else {
-              Write-Host "No Release directory found anywhere under build/" -ForegroundColor Red
-              exit 1
-            }
+          # Build already outputs to build/windows/x64/runner/Release/
+          # Just verify the directory exists before MSIX packaging
+          if (-not (Test-Path "build/windows/x64/runner/Release/dragexif.exe")) {
+            Write-Host "dragexif.exe not found in build/windows/x64/runner/Release/" -ForegroundColor Red
+            exit 1
           }
 
       - name: Build MSIX
