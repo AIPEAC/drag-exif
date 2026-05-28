@@ -2,13 +2,13 @@ name: Build
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
     paths:
       - 'lib/**'
       - 'pubspec.yaml'
       - '.github/workflows/build.yml'
   pull_request:
-    branches: [main, master]
+    branches: [main]
 
 jobs:
   build-linux:
@@ -49,13 +49,13 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
-      - name: Build Linux
+      - name: Build Linux (release)
         run: flutter build linux --release
 
       - name: Package Linux build
         run: |
           cd build/linux/x64/release
-          tar czf ../../../../dragexif-linux.tar.gz bundle/
+          tar czf "$(git rev-parse --show-toplevel)/dragexif-linux.tar.gz" bundle/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -94,8 +94,17 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Windows
+      - name: Build Windows (release)
         run: flutter build windows --release
+
+      - name: Stage MSIX build
+        run: |
+          # Build already outputs to build/windows/x64/runner/Release/
+          # Just verify the directory exists before MSIX packaging
+          if (-not (Test-Path "build/windows/x64/runner/Release/dragexif.exe")) {
+            Write-Host "dragexif.exe not found in build/windows/x64/runner/Release/" -ForegroundColor Red
+            exit 1
+          }
 
       - name: Build MSIX
         run: flutter pub run msix:create
